@@ -1,3 +1,5 @@
+using System.Diagnostics;
+
 public class PageNavigationAnalyzerMiddleware
 {
     private readonly RequestDelegate _next;
@@ -7,8 +9,14 @@ public class PageNavigationAnalyzerMiddleware
         _next = next;
     }
 
-    public async Task InvokeAsync(HttpContext context)
+    public async Task InvokeAsync(HttpContext context, IPageNavigationAnalyzerService pageNavigationAnalyzerService)
     {
+        var referer = context.Request.Headers["Referer"].ToString();
+        var refererUri = referer.Length > 0 
+            ? new Uri(referer).AbsolutePath 
+            : "(external)";
+        
+        pageNavigationAnalyzerService.AddEdge(refererUri, context.Request.Path);
 
         await _next(context);
     }
